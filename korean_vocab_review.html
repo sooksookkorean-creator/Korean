@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국어 단어 복습</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:900px;margin:20px auto;padding:20px}
+textarea{width:100%;height:180px}
+button{padding:10px 15px;margin:5px}
+.card{border:1px solid #ccc;padding:20px;margin-top:15px;border-radius:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<h1>오늘의 단어 복습</h1>
+
+<p>형식: 한국어,영어</p>
+<textarea id="vocab">침,acupuncture needle
+뜸,moxibustion
+부항,cupping
+한약,herbal medicine
+환자,patient</textarea><br>
+<button onclick="loadWords()">단어 불러오기</button>
+
+<div id="flashcard" class="card hidden">
+<h2>플래시카드</h2>
+<div id="word"></div><br>
+<button onclick="flip()">뜻 보기</button>
+<button onclick="nextCard()">다음</button>
+</div>
+
+<div id="quiz" class="card hidden">
+<h2>퀴즈</h2>
+<div id="question"></div>
+<input id="answer" placeholder="영어 뜻 입력">
+<button onclick="check()">정답 확인</button>
+<div id="result"></div>
+</div>
+
+<script>
+let words=[], idx=0, showingMeaning=false;
+
+function loadWords(){
+ const lines=document.getElementById('vocab').value.trim().split('\n');
+ words=lines.map(x=>{
+   const p=x.split(',');
+   return {ko:p[0].trim(), en:p[1].trim()};
+ });
+ localStorage.setItem('korean_vocab', JSON.stringify(words));
+ idx=0;
+ document.getElementById('flashcard').classList.remove('hidden');
+ document.getElementById('quiz').classList.remove('hidden');
+ showCard();
+ showQuiz();
+}
+
+function showCard(){
+ showingMeaning=false;
+ document.getElementById('word').innerText=words[idx].ko;
+}
+
+function flip(){
+ const w=words[idx];
+ document.getElementById('word').innerText=showingMeaning ? w.ko : w.en;
+ showingMeaning=!showingMeaning;
+}
+
+function nextCard(){
+ idx=(idx+1)%words.length;
+ showCard();
+}
+
+function showQuiz(){
+ const w=words[Math.floor(Math.random()*words.length)];
+ window.current=w;
+ document.getElementById('question').innerText=w.ko+" 의 영어 뜻은?";
+ document.getElementById('answer').value="";
+ document.getElementById('result').innerText="";
+}
+
+function check(){
+ const user=document.getElementById('answer').value.trim().toLowerCase();
+ if(user===current.en.toLowerCase()){
+   document.getElementById('result').innerText="정답!";
+ }else{
+   document.getElementById('result').innerText="오답. 정답: "+current.en;
+ }
+ showQuiz();
+}
+
+window.onload=()=>{
+ const saved=localStorage.getItem('korean_vocab');
+ if(saved){document.getElementById('vocab').value=JSON.parse(saved).map(x=>x.ko+","+x.en).join("\n");}
+}
+</script>
+</body>
+</html>
